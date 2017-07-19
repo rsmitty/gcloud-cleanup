@@ -1,0 +1,38 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: gcloud-cleanup
+  name: gcloud-cleanup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcloud-cleanup
+  template:
+    metadata:
+      labels:
+        app: gcloud-cleanup
+    spec:
+      containers:
+      - name: gcloud-cleanup
+        image: rsmitty/gcloud-cleanup
+        imagePullPolicy: Always
+        env:
+          - name: GCLOUD_CLEANUP_INSTANCE_FILTERS
+            value: "name eq ^k8s-.*"
+          - name: GCLOUD_PROJECT
+            value: "kargo-ci-1"
+          - name: GCLOUD_CLEANUP_INSTANCE_MAX_AGE
+            value: "3h0m0s"
+          - name: GOOGLE_CREDENTIALS
+            value: "/svcaccount/account_json"
+        volumeMounts:
+          - name: svcaccount
+            mountPath: /svcaccount
+            readOnly: true
+      volumes: 
+        - name: svcaccount
+          secret:
+            secretName: gcloud-svc-acct
+
